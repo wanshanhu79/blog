@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UINavigationBar的层级结构</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">UINavigationBar的层级结构</h1>
+        <div class="show-content">
+          <p>最近，看了标哥的博客－《iOS导航标题不居中问题》（原文地址http://www.henishuo.com/ios-nav-center-question/）不甚理解，特看了下UINavigationBar的层级结构</p><p>我没有自定义左边item，用的系统的item。打印了navigationBar的subviews，结果如下：</p><p>class:_UINavigationBarBackground: 0x7a8f7130; frame = (0 -20; 320 64); autoresize = W; userInteractionEnabled = NO; layer =&gt;0x7a8f6830&gt;&gt;,,,superClass:_UIBarBackgroundImageView;</p><p>class:UINavigationItemView: 0x7a8f4450; frame = (106 8; 108 27); opaque = NO; userInteractionEnabled = NO;layer = &lt;CALayer: 0x7a8f4500&gt;&gt;,,,,superClass:UIView;<br></p><p>class:UIButton: 0x7a7bbd70; frame = (6 7; 30 30); opaque = NO; layer =&lt;CALayer:0x7a7bbe90&gt;&gt;,,,,superClass:UIControl;<br></p><p>class:&lt;UIView: 0x7a7ba490; frame = (274 2; 40 40); layer =&lt;CALayer: 0x7a7ba520&gt;&gt;,,,superClass:UIResponder</p><p>class:&lt;_UINavigationBarBackIndicatorView: 0x7a839550; frame = (8 11.5; 13 21); alpha = 0; opaque = NO; userInteractionEnabled = NO; layer =&lt;CALayer: 0x7a839520&gt;&gt;,,,superClass:UIImageView.<br></p><p><br></p><p>_UINavigationBarBackground就是整个NavigationBar<br></p><p>UINavigationItemView是前一个页面的titleView<br></p><p>UIView是前一个页面的右边的item，</p><p>UIButton是返回按钮，设置[[UIBarButtonItem appearance] setBackButtonBackgroundImage:backButtonImage forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];设置的是返回按钮的背景图，要设置偏移量，不然图会被严重拉伸<br></p><p>_UINavigationBarBackIndicatorView是我们看到的那个返回剪头图片，所以设置self.navigationBar.backIndicatorImage = image;是设置的不是返回按钮的图片<br></p><p><br></p><p>UIBarButtonItem会放在UINavigationItem中，UINavigationItem在UINavigationBar的items中。当我们没有设置backBarButtonItem时，UINavigationItem中的backBarButtonItem也为nil。</p><p>_UINavigationBarBackground与_UINavigationBarBackIndicatorView在navigation不断push新controller过程中不会创建新对象，但UIButton在subviews中并没有找到。并且backBarButtonItem与UIButton、_UINavigationBarBackIndicatorView的显示关系还没有找到，backButtonTitle相对应的显示关系也没有找到，等待继续发掘。<br></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

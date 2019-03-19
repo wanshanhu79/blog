@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自己解析 iOS crash</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">自己解析 iOS crash</h1>
+        <div class="show-content">
+          <p>一直在用友盟做崩溃统计，崩溃数据收集一直没有问题，很突然的某天它提供的解析工具解析不出对应的崩溃数据了。就自己找了下相关的崩溃解析方法，做一下笔记，方便后面自己翻阅。</p><hr><h1>
+<a href="http://blog.csdn.net/yang3wei/article/details/39966263" target="_blank">通过dSYM文件分析crash日志</a><br>
+</h1><p>从iOS8开始，系统可以开始帮助我们收集应用的崩溃日志，但前提是用户同意“与应用开发者分享”，可以在“设置-》隐私-》诊断与用量-应用开发者共享”中进行打开或关闭。</p><p>Xcode 自带的崩溃分析工具：Symbolicatecrash<br></p><h3>1&gt;.首先找到​symbolicatecrash所在目录路径</h3><p>xcode6.0以前的位置：/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/PrivateFrameworks/DTDeviceKit.framework/Versions/A/Resources</p><p>xcode6.0以后的位置：​/Applications/Xcode.app/Contents/SharedFrameworks/DTDeviceKitBase.framework/Versions/A/Resources</p><h3>2&gt;.找到app对应的.dSYM 文件</h3><p>在“Xcode-》Window-》Organizer”中可以找到响应的dsym和crash文件。</p><p>首先找到最后一次打包提交appstore的archive文件，显示包内容，app对应的.dSYM文件就在dSYMs文件夹中​</p><h3>3&gt;.将 projectName.app.dSYM 文件 和 crash 日志文件放在同一个目录中</h3><h3>4&gt;.打开Terminal，并且定位到.dSYM文件和.crash文件所在的文件夹</h3><h3>5&gt;.在终端中输入 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer</h3><h3>6&gt;.继续输入  symbolicatecrash​路径/symbolicatecrash crashFile.crash projectName.app.dSYM &gt; crash.txt</h3><h3>7&gt;.打开目录中的crash.txt文件，迅速定位错误代码</h3><br><hr><div class="image-package">
+<img data-height="472" data-width="867" data-image-slug="ca4b3e702c1b465f" src="http://upload-images.jianshu.io/upload_images/1388332-ca4b3e702c1b465f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/1388332-ca4b3e702c1b465f.png?imageMogr2/auto-orient/strip"><br><div class="image-caption"></div>
+</div><p>这是友盟收集到的崩溃信息，怎么处理呢？</p><h1>根据错误堆栈定位到错误位置</h1><p></p><div class="image-package">
+<img data-original-src="http://upload-images.jianshu.io/upload_images/1388332-28bf54f29dcc1685.png?imageMogr2/auto-orient/strip" src="http://upload-images.jianshu.io/upload_images/1388332-28bf54f29dcc1685.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><div class="image-caption"></div>
+</div><p></p><p><b>这是未标记错误位置，无基地址的情况</b>。这条调用栈包括下面四部分:<br></p><p>模块号: 这里是4</p><p>二进制库名: 这里是 TalentService</p><p>调用方法的地址: 这里是 0x1002c28f4</p><p>第四部分为偏移地址，偏移地址为 710956。</p><p>将0x1002c28f4<br>转为10进制是4297861364，4297861364-710956 = 4297150408</p><p>再转为16进制为 0想00214fc8，这个就是基地址了。</p><p>找到xcarchive文件打开，显示包内容，将里面的“Products-&gt;Applications-&gt;文件”和”dSYMs-&gt;文件“保存到一个新的文件夹中。</p><p>打开终端，进入这个新文件夹下，输入如下命令就可以得到崩溃信息<br></p><p>atos -arch arm64 -o TalentService.app/TalentService -l 0x100214fc8 0x1002c28f4</p><p>如图所示：</p><p></p><div class="image-package">
+<img data-original-src="http://upload-images.jianshu.io/upload_images/1388332-35c048f617f5c940.png?imageMogr2/auto-orient/strip" src="http://upload-images.jianshu.io/upload_images/1388332-35c048f617f5c940.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br><div class="image-caption"></div>
+</div><p></p><p><br></p><p>参考网址<a target="_blank" href="http://bughd.com/doc/ioscrash">：iOS 错误堆栈查找崩溃原因的方法</a> <br></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

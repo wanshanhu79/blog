@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS如何拿到拍照照片的URL</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">iOS如何拿到拍照照片的URL</h1>
+        <div class="show-content">
+          <p>最近公司的项目要做一个草稿箱功能，里面有照片，该怎么保存照片呢，当然保存图片的URL路径。</p><p>1、相册的照片，拿到照片的时候就可以拿到相应的路径</p><p>2、拍照的照片，可以拿到照片，但没有返回路径，怎么办呢。后面发现我们自己调用相机拍的照片要自己保存到相册的，一番尝试之后，发现有个方法可以满足我们的需求如下：</p><p><br></p><div class="image-package">
+<img class="uploaded-img" src="http://upload-images.jianshu.io/upload_images/1388332-55dbd5d63ee934bd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" width="auto" height="auto"><br><div class="image-caption"></div>
+</div><p>3、这个很好做，哪怎么从URL拿到相应的照片呢。通过ALAsset，先拿到ALAsset对象，再由这个对象去拿到对应的照片。ALAssetsLibrary这个类下有相应的方法：</p><div class="image-package">
+<img class="uploaded-img" src="http://upload-images.jianshu.io/upload_images/1388332-ec561618a4b06a5f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" width="auto" height="auto"><br><div class="image-caption"></div>
+</div><p>4、前面都还顺利，但到后面实际用时，发现拿到的照片一直为nil，难道是方法不可用，但方法是一步步打印验证的，问题出在哪儿呢。后面经过一系列验证，发现是获取ALAsset对象的ALAssetsLibrary对象销毁后，ALAsset对象就也会自动销毁，强持有ALAsset对象也不行，后面尝试创建一个用static修饰的ALAssetsLibrary对象后，就没有问题了。</p><p><br></p><p><br></p><p>PS:第一次写不知道，没有用markdown，不好意思，有意向交流的可以加我QQ：994413754 。</p><p>更新于2018年3月30日。</p><p>第四步的主要代码如下图：</p><div class="image-package">
+<img class="uploaded-img" src="http://upload-images.jianshu.io/upload_images/1388332-2fc12ab51decb083.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" width="auto" height="auto"><br><div class="image-caption"></div>
+</div><p>下图来源：<a href="https://blog.csdn.net/jerrychenly/article/details/23295965" target="_blank">iOS编程小技巧</a></p><div class="image-package">
+<img class="uploaded-img" src="http://upload-images.jianshu.io/upload_images/1388332-e5ffaebc1a4734ed.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" width="auto" height="auto"><br><div class="image-caption"></div>
+</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

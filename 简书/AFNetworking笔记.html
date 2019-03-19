@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFNetworking笔记</title>
+    <style type="text/css" media="all">
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        color: #777;
+        background-color: white;
+      }
+      .container {
+        width: 700px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      .post {
+        font-family: Georgia, "Times New Roman", Times, "SimSun", serif;
+        position: relative;
+        padding: 70px;
+        bottom: 0;
+        overflow-y: auto;
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 25px;
+        color: #515151;
+      }
+
+      .post h1{
+        font-size: 50px;
+        font-weight: 500;
+        line-height: 60px;
+        margin-bottom: 40px;
+        color: inherit;
+      }
+
+      .post p {
+        margin: 0 0 35px 0;
+      }
+
+      .post img {
+        border: 1px solid #D9D9D9;
+      }
+
+      .post a {
+        color: #28A1C5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post">
+        <h1 class="title">AFNetworking笔记</h1>
+        <div class="show-content">
+          <p>最近在看runloop时看到不少blog都说AFNetworking，有使用到runloop创建一个子线程并保持线程不断循环。</p><div class="image-package">
+<img src="http://upload-images.jianshu.io/upload_images/1388332-290b31bfdfcf81b4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" data-original-src="http://upload-images.jianshu.io/upload_images/1388332-290b31bfdfcf81b4.png?imageMogr2/auto-orient/strip" data-image-slug="290b31bfdfcf81b4" data-width="782" data-height="184"><br><div class="image-caption"></div>
+</div><p>我在我的项目（AF 3.x）中寻找并没有找到相关方法，之后在AF 2.x中找到了相关方法。 </p><p>AF 2.x基于NSURLConnection包装的重要对象，由于iOS9-NSURLConnection已经不能使用，AFNetworking在3.x版本中删除了基于 NSURLConnection API的所有支持。如果项目以前使用过这些API,那么我们需要升级到基于 NSURLSession 的API的AFNetworking的版本。</p><p><b>线程  摘自 （  <a href="http://blog.cnbang.net/tech/2320/" target="_blank">AFNetworking2.0源码解析 «  bang’s blog</a>）</b></p><p>来看看NSURLConnection发送请求时的线程情况，NSURLConnection是被设计成异步发送的，调用了start方法后，NSURLConnection会新建一些线程用底层的CFSocket去发送和接收请求，在发送和接收的一些事件发生后通知原来线程的Runloop去回调事件。<br></p><p>NSURLConnection的同步方法sendSynchronousRequest方法也是基于异步的，同样要在其他线程去处理请求的发送和接收，只是同步方法会手动block住线程，发送状态的通知也不是通过RunLoop进行。</p><p>使用NSURLConnection有几种选择：</p><p><b>A.在主线程调异步接口</b></p><p>若直接在主线程调用异步接口，会有个Runloop相关的问题</p><p>当在主线程调用[[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES]时，请求发出，侦听任务会加入到主线程的Runloop下，RunloopMode会默认为NSDefaultRunLoopMode。这表明只有当前线程的Runloop处于NSDefaultRunLoopMode时，这个任务才会被执行。但当用户滚动tableview或scrollview时，主线程的Runloop是处于NSEventTrackingRunLoopMode模式下的，不会执行NSDefaultRunLoopMode的任务，所以会出现一个问题，请求发出后，如果用户一直在操作UI上下滑动屏幕，那在滑动结束前是不会执行回调函数的，只有在滑动结束，RunloopMode切回NSDefaultRunLoopMode，才会执行回调函数。苹果一直把动画效果性能放在第一位，估计这也是苹果提升UI动画性能的手段之一。<br></p><p>所以若要在主线程使用NSURLConnection异步接口，需要手动把RunloopMode设为NSRunLoopCommonModes。这个mode意思是无论当前Runloop处于什么状态，都执行这个任务。</p><p><b>B.在子线程调同步接口</b><br></p><p>若在子线程调用同步接口，一条线程只能处理一个请求，因为请求一发出去线程就阻塞住等待回调，需要给每个请求新建一个线程，这是很浪费的，这种方式唯一的好处应该是易于控制请求并发的数量。</p><p><b>C.在子线程调异步接口</b></p><p>子线程调用异步接口，子线程需要有Runloop去接收异步回调事件，这里也可以每个请求都新建一条带有Runloop的线程去侦听回调，但这一点好处都没有，既然是异步回调，除了处理回调内容，其他时间线程都是空闲可利用的，所有请求共用一个响应的线程就够了。</p><p>AFNetworking用的就是第三种方式，创建了一条常驻线程专门处理所有请求的回调事件，这个模型跟nodejs有点类似。网络请求回调处理完，组装好数据后再给上层调用者回调，这时候回调是抛回主线程的，因为主线程是最安全的，使用者可能会在回调中更新UI，在子线程更新UI会导致各种问题，一般使用者也可以不需要关心线程问题。</p><h1>
+<b>NSURLSession</b><br>
+</h1><p>络设置：参考NSURLConnection中的设置项。<br></p><p>1. 创建一个NSURLSession，系统提供了两个创建方法：</p><p>sessionWithConfiguration:</p><p>sessionWithConfiguration:delegate:delegateQueue:</p><p>第一个粒度较低就是根据刚才创建的Configuration创建一个Session，系统默认创建一个新的OperationQueue处理Session的消息。</p><p>第二个粒度比较高，可以设定回调的delegate（注意这个回调delegate会被强引用），并且可以设定delegate在哪个OperationQueue回调，如果我们将其设置为[NSOperationQueue mainQueue]就能在主线程进行回调非常的方便。OperationQueue不传系统会自动在子线程返回，AF3.x在这里传入一个子操作队列，让其回调在同一个操作队列中进行。</p><p>2.创建一个NSURLRequest调用刚才的NSURLSession对象提供的Task函数，创建一个NSURLSessionTask。<br></p><p>根据职能不同Task有三种子类：</p><p>NSURLSessionUploadTask：上传用的Task，传完以后不会再下载返回结果；</p><p>NSURLSessionDownloadTask：下载用的Task；</p><p>NSURLSessionDataTask：可以上传内容，上传完成后再进行下载。</p><p>得到的Task，调用resume开始工作，默认是挂起的。</p><hr><p>NSURLSession是线程安全的，在多线程方面的支持也比URLConnection要好。<br></p><p>NSURLSessionTask会在子线程工作，不会阻碍主线程。在AF3.0没有再使用runloop来接受回调事件，而是创建NSURLSession时，传入了一个子操作队列，所有的回调事件都在这个操作队列中处理。Runloop的模式不会影响它的回调。</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
