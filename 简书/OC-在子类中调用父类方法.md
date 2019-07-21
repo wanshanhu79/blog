@@ -117,13 +117,13 @@ IMP imp1 =  [[[self class] superclass] instanceMethodForSelector:sel];
 ```
 - (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(null_unspecified WKNavigation *)navigation withError:(NSError *)error {
 
-    if ([[super class] instancesRespondToSelector:_cmd]) {
+    if ([[[self class] superclass] instancesRespondToSelector:_cmd]) {
         [super webView:webView didFailProvisionalNavigation:navigation withError:error];
     }
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation {
-    if ([[super class] instancesRespondToSelector:_cmd]) {
+    if ([[[self class] superclass] instancesRespondToSelector:_cmd]) {
         [super webView:webView didFinishNavigation:navigation];
     }
     
@@ -135,7 +135,7 @@ IMP imp1 =  [[[self class] superclass] instanceMethodForSelector:sel];
 ```
 - (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(null_unspecified WKNavigation *)navigation withError:(NSError *)error {
 
-    if ([[super class] instancesRespondToSelector:_cmd]) {
+    if ([[[self class] superclass] instancesRespondToSelector:_cmd]) {
         struct objc_super superReceiver = {
             self,
             [self superclass]
@@ -145,7 +145,7 @@ IMP imp1 =  [[[self class] superclass] instanceMethodForSelector:sel];
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation {
-    if ([[super class] instancesRespondToSelector:_cmd]) {
+    if ([[[self class] superclass] instancesRespondToSelector:_cmd]) {
         struct objc_super superReceiver = {
             self,
             [self superclass]
